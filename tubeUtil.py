@@ -36,6 +36,13 @@ def get_playlist_details(playlist_id):
     return playlist.title, playlist.video_urls
 
 
+def create_output_path(type):
+    output_path = os.path.join(os.getcwd(), type)
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+    return output_path
+
+
 if __name__ == "__main__":
     thread_list = []
 
@@ -55,22 +62,22 @@ if __name__ == "__main__":
 
     # if playlist flag is set, create directory and download all videos in the playlist
     if args.p is not None:
+        output_path = create_output_path("playlists")
         playlist_id = args.p
-        details = get_playlist_details(playlist_id)
-        print("Playlist title: " + details[0])
-        if not os.path.exists(details[0]):
-            print("Creating directory: " + details[0])
-            os.mkdir(details[0])
-            for video_url in details[1]:
+        title, video_urls = get_playlist_details(playlist_id)
+        print("Playlist title: " + title)
+        playlist_dir = os.path.join(output_path, title)
+        if not os.path.exists(playlist_dir):
+            print("Creating directory: " + title)
+            os.mkdir(playlist_dir)
+            for video_url in video_urls:
                 thread = Thread(target=perform_download,
-                                args=(video_url, details[0]))
+                                args=(video_url, playlist_dir))
                 thread_list.append(thread)
             for thread in thread_list:
                 thread.start()
     elif args.v is not None:
+        output_path = create_output_path("videos")
         video_id = args.v
         video_url = create_youtube_link(video_id)
-        if not os.path.exists("downloads"):
-            print("Creating directory: downloads")
-            os.mkdir("downloads")
-        perform_download(video_url, "downloads")
+        perform_download(video_url, output_path)
